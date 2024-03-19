@@ -168,5 +168,3 @@ annoying, sometimes be useful, that's why this can be handly."
 
 (add-hook 'prog-mode-hook 'copilot-mode)
 (add-hook 'cmake-mode-hook 'copilot-mode)
-
-;(copilot-login)
