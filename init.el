@@ -1,12 +1,9 @@
-(package-initialize)
-
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/")) ;; installed by default
-(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/")) ;; installed by default from Emacs 28 onwards
-(add-to-list 'load-path "~/.emacs.d/copilot-emacsd/")
-(add-to-list 'load-path "~/.emacs.d/copilot-emacsd/copilot.el/")
+(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/")) ;
 
-;; s is only available on melpa, so we download the file manually from github.
-(use-package s "~/.emacs.d/s.el")
+(add-to-list 'load-path "~/.emacs.d/lisp/")
+(add-to-list 'load-path "~/.emacs.d/lisp/s.el")
+(add-to-list 'load-path "~/.emacs.d/lisp/f.el")
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -23,4 +20,4 @@
  )
 
 ;; Load copilot-emacsd
-(load-file "~/.emacs.d/init-copilot.el")
+(load-file "~/.emacs.d/copilot-init.el")

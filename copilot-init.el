@@ -3,6 +3,14 @@
 
 (require 'package)
 (require 'cl)
+(add-to-list 'load-path "~/.emacs.d/copilot.el/")
+
+(setq ;; debug-on-error t
+      no-byte-compile t
+      byte-compile-warnings nil
+      warning-suppress-types '((comp))
+      inhibit-startup-screen t
+      )
 
 ;; install dependencies  including s?
 (let ((pkg-list '(use-package
@@ -123,8 +131,6 @@ annoying, sometimes be useful, that's why this can be handly."
 
 ;; load the copilot package
 (use-package copilot
-  :load-path (lambda () (expand-file-name "copilot.el" user-emacs-directory))
-
   :diminish ;; don't show in mode line (we don't wanna get caught cheating, right? ;)
 
   :config
@@ -155,7 +161,12 @@ annoying, sometimes be useful, that's why this can be handly."
      ;; Note company is optional but given we use some company commands above
      ;; we'll require it here. If you don't use it, you can remove all company
      ;; related code from this file, copilot does not need it.
+     (setq copilot-max-char -1)
+     (setq copilot-indent-offset-warning-disable t)
      (require 'company)
-     (global-copilot-mode)))
+     ))
 
-(copilot-login)
+(add-hook 'prog-mode-hook 'copilot-mode)
+(add-hook 'cmake-mode-hook 'copilot-mode)
+
+;(copilot-login)

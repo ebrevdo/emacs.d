@@ -9,3 +9,12 @@
 
 # Undo-tree save-files
 *.~undo-tree
+
+# Elpa
+elpa/
+
+# Temporary files
+\#*\#
+
+# Cache
+.cache
