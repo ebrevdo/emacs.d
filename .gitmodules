@@ -28,3 +28,6 @@
 [submodule "lisp/themes/emacs-kaolin-themes"]
 	path = lisp/themes/emacs-kaolin-themes
 	url = https://github.com/ogdenwebb/emacs-kaolin-themes
+[submodule "lisp/hl-fill-column"]
+	path = lisp/hl-fill-column
+	url = https://github.com/laishulu/hl-fill-column

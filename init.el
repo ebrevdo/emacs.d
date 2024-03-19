@@ -8,6 +8,7 @@
 (add-to-list 'load-path "~/.emacs.d/lisp/ts.el")
 (add-to-list 'load-path "~/.emacs.d/lisp/uuidgen-el")
 (add-to-list 'load-path "~/.emacs.d/lisp/pyvenv")
+(add-to-list 'load-path "~/.emacs.d/lisp/hl-fill-column")
 (add-to-list 'load-path "~/.emacs.d/lisp/themes/emacs-kaolin-themes")
 
 (custom-set-variables
@@ -20,7 +21,7 @@
    '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f" "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
+   '(markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -38,12 +39,40 @@
 ;; Create a memorable alias for `eglot-ensure'.
 (defalias 'start-lsp-server #'eglot)
 
+;; Enabled inline static analysis
+(add-hook 'prog-mode-hook #'flymake-mode)
+
+;; Don't use TABS for indentations.
+(setq-default indent-tabs-mode nil)
+;; Set the number to the number of columns to use.
+(setq-default fill-column 100)
+;; Add Autofill mode to mode hooks.
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+;; Show line number in the mode line.
+(line-number-mode 1)
+;; Show column number in the mode line.
+(column-number-mode 1)
+;; Highlight current row in all buffers.
+(global-hl-line-mode 1)
+;; Show matching parentheses.
+(show-paren-mode 1)
+;; Highlight the fill column
+(require 'hl-fill-column)
+(global-hl-fill-column-mode)
+
+;; whitespace-mode
+;; free of trailing whitespace and to use 100-column width, standard indentation
+(setq whitespace-style '(trailing lines space-before-tab indentation space-after-tab lines-tail)
+      whitespace-line-column 100)
+(global-whitespace-mode 1)
+
 ;; Load copilot-emacsd
 (load-file "~/.emacs.d/copilot-init.el")
 
 ;; Load openai chatbot
 (add-to-list 'load-path "~/.emacs.d/lisp/aibo/elisp")
 (require 'aibo)
+
 ; Keybindings
 (global-set-key (kbd "C-M-h") 'aibo:homepage)
 (global-set-key (kbd "C-M-s") 'aibo:message-search)
@@ -63,12 +92,13 @@
 (use-package vertico
   :init
   (vertico-mode)
-
+  (vertico-flat-mode)
+  
   ;; Different scroll margin
   ;; (setq vertico-scroll-margin 0)
 
   ;; Show more candidates
-  (setq vertico-count 5)
+  ;; (setq vertico-count 5)
 
   ;; Grow and shrink the Vertico minibuffer
   (setq vertico-resize t)
