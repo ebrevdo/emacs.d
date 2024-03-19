@@ -32,6 +32,12 @@
 ;; Stop asking if it's OK to kill processes on exit.
 (setq confirm-kill-processes nil)
 
+
+;; Enable LSP support by default in programming buffers
+(add-hook 'prog-mode-hook #'eglot-ensure)
+;; Create a memorable alias for `eglot-ensure'.
+(defalias 'start-lsp-server #'eglot)
+
 ;; Load copilot-emacsd
 (load-file "~/.emacs.d/copilot-init.el")
 
