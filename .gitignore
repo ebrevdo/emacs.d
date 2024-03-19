@@ -17,4 +17,7 @@ elpa/
 \#*\#
 
 # Cache
-.cache
+.cache/
+
+# Request
+request/

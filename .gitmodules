@@ -7,3 +7,18 @@
 [submodule "lisp/s.el"]
 	path = lisp/s.el
 	url = https://github.com/magnars/s.el
+[submodule "lisp/aibo"]
+	path = lisp/aibo
+	url = https://github.com/dmed256/aibo.git
+[submodule "lisp/ht.el"]
+	path = lisp/ht.el
+	url = https://github.com/Wilfred/ht.el
+[submodule "lisp/ts.el"]
+	path = lisp/ts.el
+	url = https://github.com/alphapapa/ts.el
+[submodule "lisp/uuidgen-el"]
+	path = lisp/uuidgen-el
+	url = https://github.com/kanru/uuidgen-el
+[submodule "lisp/pyvenv"]
+	path = lisp/pyvenv
+	url = https://github.com/jorgenschaefer/pyvenv
