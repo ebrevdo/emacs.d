@@ -15,7 +15,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(aibo:model "gpt4-turbo")
- '(package-selected-packages '(paredit editorconfig jsonrpc)))
+ '(package-selected-packages '(eglot paredit editorconfig jsonrpc)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -40,5 +40,7 @@
 (aibo:start-server)
 
 ;; Load pyvenv
+;; To install associated python LSP server:
+;;   pip install 'python-lsp-server[all]'
 (require 'pyvenv)
 
