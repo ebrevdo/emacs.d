@@ -29,6 +29,9 @@
  ;; If there is more than one, they won't work right.
  )
 
+;; Stop asking if it's OK to kill processes on exit.
+(setq confirm-kill-processes nil)
+
 ;; Load copilot-emacsd
 (load-file "~/.emacs.d/copilot-init.el")
 
