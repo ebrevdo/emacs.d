@@ -22,3 +22,9 @@
 [submodule "lisp/pyvenv"]
 	path = lisp/pyvenv
 	url = https://github.com/jorgenschaefer/pyvenv
+[submodule "lisp/themes/haki"]
+	path = lisp/themes/haki
+	url = https://github.com/idlip/haki
+[submodule "lisp/themes/emacs-kaolin-themes"]
+	path = lisp/themes/emacs-kaolin-themes
+	url = https://github.com/ogdenwebb/emacs-kaolin-themes
