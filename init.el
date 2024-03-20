@@ -8,7 +8,10 @@
 (add-to-list 'load-path "~/.emacs.d/lisp/ts.el")
 (add-to-list 'load-path "~/.emacs.d/lisp/uuidgen-el")
 (add-to-list 'load-path "~/.emacs.d/lisp/pyvenv")
+(add-to-list 'load-path "~/.emacs.d/lisp/emacs-web-server")
+(add-to-list 'load-path "~/.emacs.d/lisp/emacs-zmq")
 (add-to-list 'load-path "~/.emacs.d/lisp/hl-fill-column")
+(add-to-list 'load-path "~/.emacs.d/lisp/jupyter")
 (add-to-list 'load-path "~/.emacs.d/lisp/themes/emacs-kaolin-themes")
 
 (custom-set-variables
@@ -32,15 +35,6 @@
 
 ;; Stop asking if it's OK to kill processes on exit.
 (setq confirm-kill-processes nil)
-
-
-;; Enable LSP support by default in programming buffers
-(add-hook 'prog-mode-hook #'eglot-ensure)
-;; Create a memorable alias for `eglot-ensure'.
-(defalias 'start-lsp-server #'eglot)
-
-;; Enabled inline static analysis
-(add-hook 'prog-mode-hook #'flymake-mode)
 
 ;; Don't use TABS for indentations.
 (setq-default indent-tabs-mode nil)
@@ -82,10 +76,23 @@
 ;; Start openai chatbot server
 (aibo:start-server)
 
-;; Load pyvenv
+;; Load paredit in lisp/elisp configurations
+(add-hook 'emacs-lisp-mode-hook
+          #'paredit-mode)
+
+;; Load pyvenv and eglot, ruff, black, etc.
 ;; To install associated python LSP server:
-;;   pip install 'python-lsp-server[all]'
+;;   pip install 'python-lsp-server[all]' python-lsp-black python-lsp-ruff
+;; Enable LSP support by default in programming buffers
+(add-hook 'prog-mode-hook #'eglot-ensure)
+;; Create a memorable alias for `eglot-ensure'.
+(defalias 'start-lsp-server #'eglot)
+;; Enabled inline static analysis
+(add-hook 'prog-mode-hook #'flymake-mode)
 (require 'pyvenv)
+(add-hook 'python-mode-hook 'pyvenv-mode)
+(add-hook 'eglot-managed-mode-hook 'pyvenv-mode)
+
 
 ;; fuzzy completion in minibuffer, etc
 ;; Enable vertico
@@ -153,3 +160,10 @@
 ; Current fav theme: haki.
 (load-theme 'haki t)
 (set-face-attribute 'haki-region nil :background "#2e8b57" :foreground "#ffffff")
+
+;; Allow opening jupyter notebooks
+;; Need to install jupyterlab:
+;;    pip install jupyterlab
+;; Also need some packages for compilation:
+;;    brew install autoconf automake libtool pkg-config zeromq
+(require 'jupyter)
