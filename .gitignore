@@ -24,3 +24,7 @@ request/
 
 # History
 history
+
+# sqlite and logs
+*.sqlite
+*.log

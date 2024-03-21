@@ -36,7 +36,34 @@
 	url = https://github.com/skeeto/emacs-web-server
 [submodule "lisp/emacs-zmq"]
 	path = lisp/emacs-zmq
-	url = https://github.com/nnicandro/emacs-zmq
+	url = https://github.com/ebrevdo/emacs-zmq
 [submodule "lisp/jupyter"]
 	path = lisp/jupyter
 	url = https://github.com/emacs-jupyter/jupyter
+[submodule "lisp/code-review"]
+	path = lisp/code-review
+	url = https://github.com/wandersoncferreira/code-review
+[submodule "lisp/closql"]
+	path = lisp/closql
+	url = https://github.com/magit/closql
+[submodule "lisp/ghub"]
+	path = lisp/ghub
+	url = https://github.com/magit/ghub
+[submodule "lisp/treepy.el"]
+	path = lisp/treepy.el
+	url = https://github.com/volrath/treepy.el
+[submodule "lisp/emacs-deferred"]
+	path = lisp/emacs-deferred
+	url = https://github.com/kiwanami/emacs-deferred
+[submodule "lisp/a.el"]
+	path = lisp/a.el
+	url = https://github.com/plexus/a.el
+[submodule "lisp/forge"]
+	path = lisp/forge
+	url = https://github.com/magit/forge
+[submodule "lisp/yaml.el"]
+	path = lisp/yaml.el
+	url = https://github.com/zkry/yaml.el
+[submodule "lisp/emacs-emojify"]
+	path = lisp/emacs-emojify
+	url = https://github.com/iqbalansari/emacs-emojify

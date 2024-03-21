@@ -1,18 +1,12 @@
-(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/")) ;; installed by default
-(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/")) ;
+(with-eval-after-load 'package
+  (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
+  (add-to-list 'package-archives '("nongnu-devel" . "https://elpa.nongnu.org/nongnu-devel/"))
+  )
 
+;; Add all subdirectories of "~/.emacs.d/lisp" to the load path
 (add-to-list 'load-path "~/.emacs.d/lisp/")
-(add-to-list 'load-path "~/.emacs.d/lisp/s.el")
-(add-to-list 'load-path "~/.emacs.d/lisp/f.el")
-(add-to-list 'load-path "~/.emacs.d/lisp/ht.el")
-(add-to-list 'load-path "~/.emacs.d/lisp/ts.el")
-(add-to-list 'load-path "~/.emacs.d/lisp/uuidgen-el")
-(add-to-list 'load-path "~/.emacs.d/lisp/pyvenv")
-(add-to-list 'load-path "~/.emacs.d/lisp/emacs-web-server")
-(add-to-list 'load-path "~/.emacs.d/lisp/emacs-zmq")
-(add-to-list 'load-path "~/.emacs.d/lisp/hl-fill-column")
-(add-to-list 'load-path "~/.emacs.d/lisp/jupyter")
-(add-to-list 'load-path "~/.emacs.d/lisp/themes/emacs-kaolin-themes")
+(let ((default-directory "~/.emacs.d/lisp/"))
+  (normal-top-level-add-subdirs-to-load-path))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -24,7 +18,7 @@
    '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f" "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
+   '(org org-journal markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -99,7 +93,6 @@
 (use-package vertico
   :init
   (vertico-mode)
-  (vertico-flat-mode)
   
   ;; Different scroll margin
   ;; (setq vertico-scroll-margin 0)
@@ -167,3 +160,17 @@
 ;; Also need some packages for compilation:
 ;;    brew install autoconf automake libtool pkg-config zeromq
 (require 'jupyter)
+
+
+;; Github etc code review
+;; Requires first:
+;;    brew install gpg
+;;    gpg --full-generate-key
+;; Then:
+;;  Follow instructions at https://github.com/wandersoncferreira/code-review/blob/master/docs/github.md
+;; to create .authinfo.gpg file.
+;; 
+;; (add-hook 'code-review-mode-hook #'emojify-mode)
+;; (setq code-review-fill-column 100)
+;; (require 'code-review)
+
