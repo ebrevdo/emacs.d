@@ -9,10 +9,12 @@
 
 ## (subset of) Packages
 
-* eglot with instructions on setting up python-lsp-server and ruff
-* aibo (for ChatGPT)
+* eglot + flywheel with instructions on setting up python-lsp-server, ruff, and black.
+* magit for git
+* paredit, markdown, org, pyvenv modes
+* aibo (for ChatGPT)  (accessible via `M-/`)
 * hl-fill-column (fill column indicator that doesn't mess with terminal copy/paste)
-* copilot.el
+* copilot.el (enabled by default in all prog modes)
 * vertico for fuzzy completion
 * jupyter
 
