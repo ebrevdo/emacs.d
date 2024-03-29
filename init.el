@@ -60,7 +60,6 @@
 ;; Load openai chatbot
 (add-to-list 'load-path "~/.emacs.d/lisp/aibo/elisp")
 (require 'aibo)
-
 ; Keybindings
 (global-set-key (kbd "C-M-h") 'aibo:homepage)
 (global-set-key (kbd "C-M-s") 'aibo:message-search)
@@ -100,16 +99,12 @@
 (use-package vertico
   :init
   (vertico-mode)
-  
   ;; Different scroll margin
   ;; (setq vertico-scroll-margin 0)
-
   ;; Show more candidates
   ;; (setq vertico-count 5)
-
   ;; Grow and shrink the Vertico minibuffer
   (setq vertico-resize t)
-
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   ;; (setq vertico-cycle t)
   )
@@ -180,6 +175,17 @@
 (add-hook 'code-review-mode-hook #'emojify-mode)
 (setq code-review-fill-column 100)
 (require 'code-review)
+
+
+;; Additional custom keybindings
+; Use C-c g or C-c C-g to goto line
+(global-set-key (kbd "C-c g") 'goto-line)
+(global-set-key (kbd "C-c C-g") 'goto-line)
+; Toggle comment region using C-c C-c in additional to M-;
+(global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
+; Open up magit status using C-x g or C-x C-g
+(global-set-key (kbd "C-x g") 'magit-status)
+(global-set-key (kbd "C-x C-g") 'magit-status)
 
 (provide 'init)
 ;;; init.el ends here
