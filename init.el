@@ -64,7 +64,8 @@
 ; Keybindings
 (global-set-key (kbd "C-M-h") 'aibo:homepage)
 (global-set-key (kbd "C-M-s") 'aibo:message-search)
-(global-set-key (kbd "M-/") 'aibo:create-conversation)
+; Control+Meta+/ to create a new conversation
+(global-set-key (kbd "C-M-/") 'aibo:create-conversation)
 ; Hide `aibo` buffers from Ivy by adding the following:
 (add-to-list 'ivy-ignore-buffers "\\*Aibo")
 ;; Start openai chatbot server
@@ -86,6 +87,12 @@
 (require 'pyvenv)
 (add-hook 'python-mode-hook 'pyvenv-mode)
 (add-hook 'eglot-managed-mode-hook 'pyvenv-mode)
+(use-package company
+  :ensure t
+  :init (global-company-mode)
+  ; Use Meta+/ to perform completion
+  :bind ("M-/" . company-complete-common)
+  )
 
 
 ;; fuzzy completion in minibuffer, etc
@@ -170,7 +177,10 @@
 ;;  Follow instructions at https://github.com/wandersoncferreira/code-review/blob/master/docs/github.md
 ;; to create .authinfo.gpg file.
 ;; 
-;; (add-hook 'code-review-mode-hook #'emojify-mode)
-;; (setq code-review-fill-column 100)
-;; (require 'code-review)
+(add-hook 'code-review-mode-hook #'emojify-mode)
+(setq code-review-fill-column 100)
+(require 'code-review)
+
+(provide 'init)
+;;; init.el ends here
 
