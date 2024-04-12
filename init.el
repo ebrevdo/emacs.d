@@ -108,6 +108,9 @@
   "Run `eglot-format-buffer` as a before-save hook."
   (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
 (add-hook 'eglot-managed-mode-hook #'eglot-format-buffer-on-save)
+;; isort on save
+(require 'python-isort)
+(add-hook 'python-mode-hook 'python-isort-on-save-mode)
 ;; Configure company mode
 (use-package company
   :ensure t

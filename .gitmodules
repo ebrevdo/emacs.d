@@ -67,3 +67,6 @@
 [submodule "lisp/emacs-emojify"]
 	path = lisp/emacs-emojify
 	url = https://github.com/iqbalansari/emacs-emojify
+[submodule "lisp/emacs-python-isort"]
+	path = lisp/emacs-python-isort
+	url = https://github.com/wyuenho/emacs-python-isort
