@@ -24,6 +24,7 @@ request/
 
 # History
 history
+transient/history.el
 
 # sqlite and logs
 *.sqlite

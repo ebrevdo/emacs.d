@@ -8,6 +8,10 @@
 (let ((default-directory "~/.emacs.d/lisp/"))
   (normal-top-level-add-subdirs-to-load-path))
 
+;; Save all backup files in ~/.emacs.d/backups
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -29,6 +33,16 @@
 
 ;; Stop asking if it's OK to kill processes on exit.
 (setq confirm-kill-processes nil)
+
+;; Always follow symlinks into git-controlled files.
+(setq vc-follow-symlinks t)
+
+;; Simple "y" or "n" to answer yes/no prompts.
+(defalias 'yes-or-no-p 'y-or-n-p)
+;; Even at exit when modified buffers exist.
+;;(setq confirm-kill-emacs 'y-or-n-p)
+;; Don't ask for exit confirmation unless there are unsaved changes.
+(setq confirm-kill-emacs nil)
 
 ;; Don't use TABS for indentations.
 (setq-default indent-tabs-mode nil)
@@ -53,6 +67,9 @@
 (setq whitespace-style '(trailing lines space-before-tab indentation space-after-tab lines-tail)
       whitespace-line-column 100)
 (global-whitespace-mode 1)
+
+;; Always delete empty whitespace at end of lines when saving
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;; Load copilot-emacsd
 (load-file "~/.emacs.d/copilot-init.el")
@@ -86,11 +103,16 @@
 (require 'pyvenv)
 (add-hook 'python-mode-hook 'pyvenv-mode)
 (add-hook 'eglot-managed-mode-hook 'pyvenv-mode)
+;; Autoformat on save
+(defun eglot-format-buffer-on-save ()
+  "Run `eglot-format-buffer` as a before-save hook."
+  (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+(add-hook 'eglot-managed-mode-hook #'eglot-format-buffer-on-save)
+;; Configure company mode
 (use-package company
   :ensure t
   :init (global-company-mode)
-  ; Use Meta+/ to perform completion
-  :bind ("M-/" . company-complete-common)
+  :bind ("M-/" . company-complete-common) ; Use Meta+/ to perform completion
   )
 
 
@@ -171,7 +193,7 @@
 ;; Then:
 ;;  Follow instructions at https://github.com/wandersoncferreira/code-review/blob/master/docs/github.md
 ;; to create .authinfo.gpg file.
-;; 
+;;
 (add-hook 'code-review-mode-hook #'emojify-mode)
 (setq code-review-fill-column 100)
 (require 'code-review)
@@ -182,11 +204,11 @@
 (global-set-key (kbd "C-c g") 'goto-line)
 (global-set-key (kbd "C-c C-g") 'goto-line)
 ; Toggle comment region using C-c C-c in additional to M-;
-(global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
+(global-set-key (kbd "C-c C-c") 'comment-dwim)
 ; Open up magit status using C-x g or C-x C-g
 (global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-x C-g") 'magit-status)
 
+
 (provide 'init)
 ;;; init.el ends here
-
