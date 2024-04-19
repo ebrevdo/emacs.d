@@ -3,6 +3,9 @@
   (add-to-list 'package-archives '("nongnu-devel" . "https://elpa.nongnu.org/nongnu-devel/"))
   )
 
+;; This allows us to then call `use-package-report` to profile startup.
+(setq use-package-compute-statistics t)
+
 ;; Add all subdirectories of "~/.emacs.d/lisp" to the load path
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 (let ((default-directory "~/.emacs.d/lisp/"))
@@ -22,7 +25,7 @@
    '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f" "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(org org-journal markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
+   '(go-mode rust-mode org org-journal markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -82,7 +85,9 @@
 (global-set-key (kbd "C-M-s") 'aibo:message-search)
 ; Control+Meta+/ to create a new conversation
 (global-set-key (kbd "C-M-/") 'aibo:create-conversation)
-; Hide `aibo` buffers from Ivy by adding the following:
+; M-I to create a new conversation
+(global-set-key (kbd "M-I") 'aibo:create-conversation)
+;; Hide `aibo` buffers from Ivy by adding the following:
 (add-to-list 'ivy-ignore-buffers "\\*Aibo")
 ;; Start openai chatbot server
 (aibo:start-server)
@@ -104,11 +109,21 @@
 (add-hook 'python-mode-hook 'pyvenv-mode)
 (add-hook 'eglot-managed-mode-hook 'pyvenv-mode)
 ;; Autoformat on save
+;; Load blacken and set all the settings in one go
+(require 'blacken)
+(add-hook 'python-mode-hook 'blacken-mode)
+;; Set blacken to 100 char line limit
+(setq blacken-line-length 100)
+(setq blacken-use-pyproject-toml t)
+;; Set blacken to only run in a repo with a pyproject.toml
+(setq blacken-only-if-project-is-blackened t)
+;; Also ruff fix on save
+(require 'ruff-fix)
 (defun eglot-format-buffer-on-save ()
   "Run `eglot-format-buffer` as a before-save hook."
-  (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+  (add-hook 'before-save-hook #'ruff-fix-before-save -10 t))
 (add-hook 'eglot-managed-mode-hook #'eglot-format-buffer-on-save)
-;; isort on save
+;; Also isort on save
 (require 'python-isort)
 (add-hook 'python-mode-hook 'python-isort-on-save-mode)
 ;; Configure company mode
@@ -117,7 +132,9 @@
   :init (global-company-mode)
   :bind ("M-/" . company-complete-common) ; Use Meta+/ to perform completion
   )
-
+;; Configure consult mode.  Note this doesn't work with python-lsp-server as of writing,
+;; and that pyright lsp server doesn't seem to work with eglot.
+(require 'consult-eglot)
 
 ;; fuzzy completion in minibuffer, etc
 ;; Enable vertico
@@ -197,20 +214,50 @@
 ;;  Follow instructions at https://github.com/wandersoncferreira/code-review/blob/master/docs/github.md
 ;; to create .authinfo.gpg file.
 ;;
-(add-hook 'code-review-mode-hook #'emojify-mode)
-(setq code-review-fill-column 100)
-(require 'code-review)
-
+;; NOTE: DISABLED, this increases file load time by 2x inside git repos.
+;; (add-hook 'code-review-mode-hook #'emojify-mode)
+;; (setq code-review-fill-column 100)
+;; (require 'code-review)
 
 ;; Additional custom keybindings
-; Use C-c g or C-c C-g to goto line
+;; Use C-c g or C-c C-g to goto line
 (global-set-key (kbd "C-c g") 'goto-line)
 (global-set-key (kbd "C-c C-g") 'goto-line)
 ; Toggle comment region using C-c C-c in additional to M-;
 (global-set-key (kbd "C-c C-c") 'comment-dwim)
 ; Open up magit status using C-x g or C-x C-g
-(global-set-key (kbd "C-x g") 'magit-status)
-(global-set-key (kbd "C-x C-g") 'magit-status)
+
+;; Add a "cs" command that requests a string calls the shell command "cs" with that string as an argument.
+;; The window is open in grep output mode.
+(defun cs-string (string)
+  "Run the shell command 'cs' with the given string as an argument."
+  (let (
+        ;; First, any non-quoted spans surrounded by forward slashes: first escape the
+        ;; forward slashes
+        (string (replace-regexp-in-string "/" "\\\\/" string))
+        (buffer-name (concat "*cs " string "*")))
+    (shell-command (concat "cs " string) buffer-name)
+    (switch-to-buffer-other-window buffer-name)
+    (grep-mode)
+    (goto-char (point-min)))
+  )
+
+
+(defun cs ()
+  "Run the shell command 'cs' with a string argument."
+  (interactive)
+  (let ((string (read-string "cs: ")))
+    (cs-string string))
+  )
+
+;; Add a "cs-at-point" command that gets the token at the cursor and runs "cs" with that token.
+(defun cs-at-point ()
+  "Run the shell command 'cs' with the token at the cursor as an argument."
+  (interactive)
+  (let ((string (thing-at-point 'symbol)))
+    (cs-string string)
+))
+
 
 
 (provide 'init)

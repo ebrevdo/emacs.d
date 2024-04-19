@@ -70,3 +70,15 @@
 [submodule "lisp/emacs-python-isort"]
 	path = lisp/emacs-python-isort
 	url = https://github.com/wyuenho/emacs-python-isort
+[submodule "lisp/consult-eglot"]
+	path = lisp/consult-eglot
+	url = https://github.com/mohkale/consult-eglot
+[submodule "lisp/blacken"]
+	path = lisp/blacken
+	url = https://github.com/pythonic-emacs/blacken
+[submodule "lisp/emacs-ruff-format"]
+	path = lisp/emacs-ruff-format
+	url = https://github.com/scop/emacs-ruff-format
+[submodule "lisp/ruff-fix.el"]
+	path = lisp/ruff-fix.el
+	url = https://github.com/mkt3/ruff-fix.el
