@@ -82,3 +82,9 @@
 [submodule "lisp/ruff-fix.el"]
 	path = lisp/ruff-fix.el
 	url = https://github.com/mkt3/ruff-fix.el
+[submodule "lisp/emacs-filelock"]
+	path = lisp/emacs-filelock
+	url = https://github.com/DarwinAwardWinner/emacs-filelock
+[submodule "lisp/emacs-python-pytest"]
+	path = lisp/emacs-python-pytest
+	url = https://github.com/wbolster/emacs-python-pytest

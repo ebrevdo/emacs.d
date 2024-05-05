@@ -3,6 +3,9 @@
   (add-to-list 'package-archives '("nongnu-devel" . "https://elpa.nongnu.org/nongnu-devel/"))
   )
 
+;; Disable menu bar
+(menu-bar-mode -1)
+
 ;; This allows us to then call `use-package-report` to profile startup.
 (setq use-package-compute-statistics t)
 
@@ -10,10 +13,6 @@
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 (let ((default-directory "~/.emacs.d/lisp/"))
   (normal-top-level-add-subdirs-to-load-path))
-
-;; Save all backup files in ~/.emacs.d/backups
-(setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
-
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -25,7 +24,7 @@
    '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f" "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(go-mode rust-mode org org-journal markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
+   '(diminish projectile go-mode rust-mode org org-journal markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -126,6 +125,10 @@
 ;; Also isort on save
 (require 'python-isort)
 (add-hook 'python-mode-hook 'python-isort-on-save-mode)
+;; Use python-pytest
+(require 'python-pytest)
+(setq python-pytest-executable "python -m pytest -vv")
+
 ;; Configure company mode
 (use-package company
   :ensure t
@@ -135,9 +138,58 @@
 ;; Configure consult mode.  Note this doesn't work with python-lsp-server as of writing,
 ;; and that pyright lsp server doesn't seem to work with eglot.
 (require 'consult-eglot)
+;; Enable which-func-mode
+(which-function-mode 1)
+;; Enable which-func-mode
+(setq which-func-unknown "?")
+;; Remove the which-function-mode from the mode-line-misc-info; since it's now in
+;; buffer-identification.
+(setq-default
+ mode-line-misc-info
+ (assq-delete-all 'which-function-mode mode-line-misc-info))
+;; Modify mode-line format: add which-function-mode just after the line/column info.
+;; First find the line/column (position) location, then insert
+(let ((position (memq 'mode-line-position mode-line-format)))
+  (setcdr position
+          (cons 'which-func-format
+                (cdr position))))
+
 
 ;; fuzzy completion in minibuffer, etc
 ;; Enable vertico
+
+;; Function like vertico-next, but cycle to beginning if at end.
+(defun vertico-next-cycle ()
+  "Move to the next candidate, or cycle to the first candidate."
+  (interactive)
+  (if (= vertico--index (1- (length vertico--candidates)))
+      (vertico--goto 0)
+    (vertico-next)))
+
+;; Function that performs vertico-insert if there's just one candidate,
+;; otherwise it performs vertico-next.  However, if my last keyboard command was
+;; was vertico-insert, then it performs vertico-next.
+
+(defun vertico-insert-or-next ()
+  "Insert the candidate if there's only one, otherwise go to the next candidate."
+  (interactive)
+  (if (eq last-command 'vertico-insert)
+      (vertico-next-cycle)
+    (let ((required-candidates 1))
+      (if (<= (length vertico--candidates) required-candidates)
+          (vertico-insert)
+        (vertico-next-cycle))
+      )))
+
+;; Function for when pressing ENTER in vertico directory mode.  If the candidate is a directory,
+;; then insert it instead of opening it.
+(defun vertico-directory-insert-or-open ()
+  "Insert the candidate if it's a directory, otherwise open it."
+  (interactive)
+  (if (file-directory-p (vertico--candidate))
+      (vertico-insert)
+    (vertico-exit)))
+
 (use-package vertico
   :init
   (vertico-mode)
@@ -148,13 +200,22 @@
   ;; Grow and shrink the Vertico minibuffer
   (setq vertico-resize t)
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  ;; (setq vertico-cycle t)
+  (setq vertico-cycle t)
+
+  ;; Vertico tab iterates through candidates
+  (keymap-set vertico-map "TAB" #'vertico-insert-or-next)
+  ;; Vertico shift+tab iterates backwards through candidates
+  ;; (keymap-set vertico-map "<backtab>" #'previous-line)
   )
 
-;; Persist history over Emacs restarts. Vertico sorts by history position.
-(use-package savehist
-  :init
-  (savehist-mode))
+(use-package vertico-directory
+  :after vertico
+  (vertico-directory-mode))
+
+  ;; Persist history over Emacs restarts. Vertico sorts by history position.
+  (use-package savehist
+    :init
+    (savehist-mode))
 
 ;; A few more useful configurations...
 (use-package emacs
@@ -198,6 +259,12 @@
 (load-theme 'haki t)
 (set-face-attribute 'haki-region nil :background "#2e8b57" :foreground "#ffffff")
 
+;; Diminish all minor modes
+(defun diminish-most-modes (unused)
+  (dolist (mode minor-mode-list) (diminish mode)))
+
+(add-to-list 'after-load-functions 'diminish-most-modes)
+
 ;; Allow opening jupyter notebooks
 ;; Need to install jupyterlab:
 ;;    pip install jupyterlab
@@ -226,6 +293,17 @@
 ; Toggle comment region using C-c C-c in additional to M-;
 (global-set-key (kbd "C-c C-c") 'comment-dwim)
 ; Open up magit status using C-x g or C-x C-g
+
+;; Make paths "clickable" in shell mode
+(require 'compile)
+(add-hook 'shell-mode-hook 'compilation-shell-minor-mode)
+;; Make a `compilation-error-regexp-alist-alist` entry for pyright output, which has the format:
+;; "\s*/path/to/file.py:line:col - [error message]"
+(eval-after-load 'compile
+  '(progn
+     (add-to-list 'compilation-error-regexp-alist-alist
+                  '(pyright "^\s*\\(.+\\):\\([0-9]+\\):\\([0-9]+\\) - error: \\(.*\\)$" 1 2 3 (4)))
+     (add-to-list 'compilation-error-regexp-alist 'pyright)))
 
 ;; Add a "cs" command that requests a string calls the shell command "cs" with that string as an argument.
 ;; The window is open in grep output mode.
@@ -258,7 +336,47 @@
     (cs-string string)
 ))
 
+;; Always use file locks, and store them somewhere in ~/.emacs.d/
+;; Furthermore, create file locks the moment a file is opened, not just when it's edited.
+;; In fact, create the lock files before the file is even being edited.
+(setq lock-file-name-transform
+      '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/locks/\\1" t)))
+(setq create-lockfiles t)
+;; Also set up auto-save-directory and backup-directory-alist
+(setq auto-save-file-name-transforms
+      '((".*" "~/.emacs.d/auto-save-list/" t)))
+(setq backup-directory-alist '((".*" . "~/.emacs.d/backups/")))
+;; Enable backups and auto-save
+(setq make-backup-files t)
+(setq auto-save-default t)
 
+
+;; Respect file-locks when loading a file and ask for confirmation if user wants to open it.
+;; This is useful when opening a file that is already open in another emacs instance.  Use y-n prompt.
+(defun check-file-lock-and-confirm-internal (filename wildcards)
+  "Check if the file is locked and ask for confirmation if user wants to open it."
+  (let (
+        (file-loaded-in-buffers (find-buffer-visiting filename))
+        (lock-file-name (file-locked-p filename)))
+    (if (and (not file-loaded-in-buffers) lock-file-name)
+        (progn
+          (if (y-or-n-p (format "File is locked by %s.  Open anyway? " lock-file-name))
+              t
+            nil))
+      t)
+    ))
+;; TODO: use filelock.el to create the lock files when applying orig-fun.
+(defun check-file-lock-and-confirm (orig-fun &rest args)
+  "Check if the file is locked and ask for confirmation if user wants to open it."
+  (let ((filename (car args))
+        (wildcards (cadr args)))
+    (if (file-exists-p filename)
+        (if (check-file-lock-and-confirm-internal filename wildcards)
+            (apply orig-fun args))
+      (apply orig-fun args)))
+  )
+;; find-file always uses the above function to first confirm
+(advice-add 'find-file :around #'check-file-lock-and-confirm)
 
 (provide 'init)
 ;;; init.el ends here
