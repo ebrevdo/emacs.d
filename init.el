@@ -107,6 +107,11 @@
 (require 'pyvenv)
 (add-hook 'python-mode-hook 'pyvenv-mode)
 (add-hook 'eglot-managed-mode-hook 'pyvenv-mode)
+(add-hook 'eglot-managed-mode-hook
+	  (lambda ()
+	    (add-hook 'flymake-diagnostic-functions #'python-flymake t t))
+	  nil t)
+
 ;; Autoformat on save
 ;; Load blacken and set all the settings in one go
 (require 'blacken)
@@ -310,9 +315,8 @@
 (defun cs-string (string)
   "Run the shell command 'cs' with the given string as an argument."
   (let (
-        ;; First, any non-quoted spans surrounded by forward slashes: first escape the
-        ;; forward slashes
-        (string (replace-regexp-in-string "/" "\\\\/" string))
+        ;; Wrap the string in double quotes and escape any existing double quotes.
+        (string (concat "\"" string "\""))
         (buffer-name (concat "*cs " string "*")))
     (shell-command (concat "cs " string) buffer-name)
     (switch-to-buffer-other-window buffer-name)
