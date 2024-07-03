@@ -19,7 +19,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(aibo:model "gpt4-turbo")
+ '(aibo:model "gpt-4o")
  '(custom-safe-themes
    '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f" "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
@@ -381,6 +381,12 @@
   )
 ;; find-file always uses the above function to first confirm
 (advice-add 'find-file :around #'check-file-lock-and-confirm)
+
+;; C-x C-f for regular find-file
+;; C-x f for find-file-in-repository
+(require 'find-file-in-repository)
+(global-set-key (kbd "C-x f") 'find-file-in-repository)
+
 
 (provide 'init)
 ;;; init.el ends here

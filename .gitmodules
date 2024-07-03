@@ -88,3 +88,6 @@
 [submodule "lisp/emacs-python-pytest"]
 	path = lisp/emacs-python-pytest
 	url = https://github.com/wbolster/emacs-python-pytest
+[submodule "lisp/find-file-in-repository"]
+	path = lisp/find-file-in-repository
+	url = https://github.com/h/find-file-in-repository
