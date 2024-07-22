@@ -91,3 +91,6 @@
 [submodule "lisp/find-file-in-repository"]
 	path = lisp/find-file-in-repository
 	url = https://github.com/h/find-file-in-repository
+[submodule "lisp/smart-jump"]
+	path = lisp/smart-jump
+	url = https://github.com/jojojames/smart-jump/

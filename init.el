@@ -24,7 +24,7 @@
    '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f" "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(diminish projectile go-mode rust-mode org org-journal markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
+   '(smart-jump ggtags dired-git-info spinner lv lsp-pyright diminish projectile go-mode rust-mode org org-journal markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -97,7 +97,7 @@
 
 ;; Load pyvenv and eglot, ruff, black, etc.
 ;; To install associated python LSP server:
-;;   pip install 'python-lsp-server[all]' python-lsp-black python-lsp-ruff
+;;   pip install --upgrade 'python-lsp-server[all]' python-lsp-black python-lsp-ruff
 ;; Enable LSP support by default in programming buffers
 (add-hook 'prog-mode-hook #'eglot-ensure)
 ;; Create a memorable alias for `eglot-ensure'.
@@ -387,6 +387,45 @@
 (require 'find-file-in-repository)
 (global-set-key (kbd "C-x f") 'find-file-in-repository)
 
+
+;; Better M-., M-, and M-? keybindings
+(require 'smart-jump)
+(smart-jump-setup-default-registers)
+
+
+;; Define a handler function for etags
+(defun etags-jump-fn-for-smart-jump ()
+  "Jump to definition using etags."
+  (let ((tags-file (locate-dominating-file default-directory "TAGS")))
+    (if tags-file
+        (visit-tags-table tags-file))
+    (find-tag (thing-at-point 'symbol t))))
+
+(defun etags-refs-fn-for-smart-jump ()
+  "Find references using etags."
+  (let ((tags-file (locate-dominating-file default-directory "TAGS")))
+    (if tags-file
+        (visit-tags-table tags-file))
+    (tags-apropos (concat "\\b" (thing-at-point 'symbol t)))))
+
+;; Register the handler for the jump-to-definition action
+;; register for all emacs prog and text modes
+;; NOTE: NOT CURRENTLY WORKING
+(smart-jump-register :modes '(emacs-lisp-mode
+                              python-mode
+                              rust-mode
+                              go-mode
+                              text-mode
+                              org-mode
+                              markdown-mode
+                              eglot-mode
+                              )
+                     :jump-fn 'etags-jump-fn-for-smart-jump
+                     :pop-fn 'pop-tag-mark
+                     :refs-fn 'etags-refs-fn-for-smart-jump
+                     :should-jump t
+                     :heuristic 'error
+                     :async nil)
 
 (provide 'init)
 ;;; init.el ends here
