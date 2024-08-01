@@ -94,3 +94,6 @@
 [submodule "lisp/smart-jump"]
 	path = lisp/smart-jump
 	url = https://github.com/jojojames/smart-jump/
+[submodule "lisp/command-log-mode"]
+	path = lisp/command-log-mode
+	url = https://github.com/lewang/command-log-mode

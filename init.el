@@ -77,19 +77,19 @@
 (load-file "~/.emacs.d/copilot-init.el")
 
 ;; Load openai chatbot
-(add-to-list 'load-path "~/.emacs.d/lisp/aibo/elisp")
-(require 'aibo)
-; Keybindings
-(global-set-key (kbd "C-M-h") 'aibo:homepage)
-(global-set-key (kbd "C-M-s") 'aibo:message-search)
-; Control+Meta+/ to create a new conversation
-(global-set-key (kbd "C-M-/") 'aibo:create-conversation)
-; M-I to create a new conversation
-(global-set-key (kbd "M-I") 'aibo:create-conversation)
-;; Hide `aibo` buffers from Ivy by adding the following:
-(add-to-list 'ivy-ignore-buffers "\\*Aibo")
-;; Start openai chatbot server
-(aibo:start-server)
+;; (add-to-list 'load-path "~/.emacs.d/lisp/aibo/elisp")
+;; (require 'aibo)
+;; ; Keybindings
+;; (global-set-key (kbd "C-M-h") 'aibo:homepage)
+;; (global-set-key (kbd "C-M-s") 'aibo:message-search)
+;; ; Control+Meta+/ to create a new conversation
+;; (global-set-key (kbd "C-M-/") 'aibo:create-conversation)
+;; ; M-I to create a new conversation
+;; (global-set-key (kbd "M-I") 'aibo:create-conversation)
+;; ;; Hide `aibo` buffers from Ivy by adding the following:
+;; (add-to-list 'ivy-ignore-buffers "\\*Aibo")
+;; ;; Start openai chatbot server
+;; (aibo:start-server)
 
 ;; Load paredit in lisp/elisp configurations
 (add-hook 'emacs-lisp-mode-hook
@@ -275,7 +275,7 @@
 ;;    pip install jupyterlab
 ;; Also need some packages for compilation:
 ;;    brew install autoconf automake libtool pkg-config zeromq
-(require 'jupyter)
+;;(require 'jupyter)
 
 
 ;; Github etc code review
@@ -426,6 +426,24 @@
                      :should-jump t
                      :heuristic 'error
                      :async nil)
+
+;; Add a command "pyright" which simply runs in a shell "pyright" with the current buffer's file.
+;; It also sets the new buffer's mode to compilation-mode.  While it's running, we
+;; should be able to see the output in the new buffer, and switch to other buffers.
+(defun pyright ()
+  "Run pyright on the current buffer's file."
+  (interactive)
+  (let (
+        (original-filename (eshell-quote-argument (buffer-file-name)))
+        ;; Use the buffer's hint name to create a new buffer name.
+        (buffer-name (concat "*pyright " (buffer-name) "*")))
+    (if original-filename
+        (progn
+          (compilation-start (concat "pyright " original-filename "\n") 'compilation-mode
+                             (lambda (mode) (concat "*pyright: " buffer-name "*")))
+          )
+      (message "No file associated with buffer."))))
+
 
 (provide 'init)
 ;;; init.el ends here
