@@ -97,3 +97,6 @@
 [submodule "lisp/command-log-mode"]
 	path = lisp/command-log-mode
 	url = https://github.com/lewang/command-log-mode
+[submodule "lisp/simpleclip"]
+	path = lisp/simpleclip
+	url = https://github.com/rolandwalker/simpleclip

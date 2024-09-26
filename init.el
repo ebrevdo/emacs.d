@@ -9,6 +9,9 @@
 ;; This allows us to then call `use-package-report` to profile startup.
 (setq use-package-compute-statistics t)
 
+;; Move eln-cache to $HOME/.emacs-eln-cache
+(setq native-comp-eln-load-path (list (expand-file-name "~/.eln-cache-emacs/")))
+
 ;; Add all subdirectories of "~/.emacs.d/lisp" to the load path
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 (let ((default-directory "~/.emacs.d/lisp/"))
@@ -21,10 +24,13 @@
  ;; If there is more than one, they won't work right.
  '(aibo:model "gpt-4o")
  '(custom-safe-themes
-   '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f" "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
+   '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f"
+     "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(smart-jump ggtags dired-git-info spinner lv lsp-pyright diminish projectile go-mode rust-mode org org-journal markdown-mode flymake solarized-theme magit orderless vertico eglot paredit editorconfig jsonrpc)))
+   '(auctex cdlatex diminish dired-git-info editorconfig eglot flymake ggtags go-mode jsonrpc
+            lsp-pyright lv magit markdown-mode orderless org org-journal paredit projectile
+            rust-mode smart-jump solarized-theme spinner vertico)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -63,6 +69,11 @@
 ;; Highlight the fill column
 (require 'hl-fill-column)
 (global-hl-fill-column-mode)
+
+;; Share clipboard with system using super+{c,v,x}
+(require 'simpleclip)
+(simpleclip-mode 1)
+
 
 ;; whitespace-mode
 ;; free of trailing whitespace and to use 100-column width, standard indentation
@@ -297,7 +308,11 @@
 (global-set-key (kbd "C-c C-g") 'goto-line)
 ; Toggle comment region using C-c C-c in additional to M-;
 (global-set-key (kbd "C-c C-c") 'comment-dwim)
-; Open up magit status using C-x g or C-x C-g
+
+; After loading magit, configure it
+(require 'magit)
+;; Set the default git executable to "git"
+(setq magit-diff-expansion-threshold 3)
 
 ;; Make paths "clickable" in shell mode
 (require 'compile)
@@ -392,6 +407,9 @@
 (require 'smart-jump)
 (smart-jump-setup-default-registers)
 
+
+;; To be able to use `gh-comments-show`.
+(require 'gh-comments)
 
 ;; Define a handler function for etags
 (defun etags-jump-fn-for-smart-jump ()
