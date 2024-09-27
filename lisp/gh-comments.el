@@ -3,7 +3,7 @@
 ;; Version: 1.6
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: tools, github
-;; URL: https://github.com/yourusername/gh-comments
+;; URL: https://github.com/ebrevdo/gh-comments
 
 ;;; Commentary:
 
