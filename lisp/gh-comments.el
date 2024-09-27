@@ -96,7 +96,7 @@
          (api-endpoint (format "repos/%s/%s/pulls/%d/comments"
                                owner repo pr-number))
          (command (list gh-comments-gh-executable "api" api-endpoint
-                        "--paginate" "--cache" "30m")))
+                        "--paginate")))
     ;; Execute the command and capture output and errors
     (with-temp-buffer
       (let* ((exit-code (apply #'call-process
@@ -127,7 +127,11 @@
 (defun gh-comments-build-threads (comments)
   "Group comments into threads based on `in_reply_to_id`."
   (let ((comment-id-map (make-hash-table :test 'equal))
-        (threads (make-hash-table :test 'equal)))
+        (threads (make-hash-table :test 'equal))
+        ;; sort comments by creation date
+        (comments (seq-sort-by (lambda (comment) (alist-get 'created_at comment))
+                               'string< comments))
+        )
     ;; First, map comment IDs to comments
     (dolist (comment comments)
       (puthash (alist-get 'id comment) comment comment-id-map))
@@ -143,20 +147,20 @@
           ;; Top-level comment, starts a new thread
           (let ((thread-id (alist-get 'id comment)))
             (puthash thread-id (list comment) threads)))))
-    ;; Return threads as a list
-    (hash-table-values threads)))
+    ;; Return threads as a list, sorted by creation date
+    (seq-sort-by (lambda (thread) (alist-get 'created_at (car thread)))
+                 'string< (hash-table-values threads))))
 
 (defun gh-comments-filter-resolved-threads (threads)
   "Filter out resolved threads based on the presence of line numbers."
   (seq-filter
    (lambda (thread)
-     (let* ((first-comment (car (last thread)))  ;; First comment is at the end after build
-            (raw-line-number (alist-get 'line first-comment))
+     (let* ((last-comment (car thread)) ;; Last comment is at the start after build
+            (raw-position-number (alist-get 'position last-comment))
             ;; Handle :null values
-            (line-number (if (eq raw-line-number :null) nil raw-line-number)))
-       ;; Include thread if the line-number is a number
-       (numberp line-number)
-       ))
+            (position-number (if (eq raw-position-number :null) nil raw-position-number)))
+       ;; Include thread if the position-number is a number
+       (numberp position-number)))
    threads))
 
 (defun gh-comments-colorize-diff-line (line)
