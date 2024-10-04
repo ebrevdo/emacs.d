@@ -66,6 +66,7 @@
 (global-hl-line-mode 1)
 ;; Show matching parentheses.
 (show-paren-mode 1)
+
 ;; Highlight the fill column
 (require 'hl-fill-column)
 (global-hl-fill-column-mode)
@@ -73,7 +74,6 @@
 ;; Share clipboard with system using super+{c,v,x}
 (require 'simpleclip)
 (simpleclip-mode 1)
-
 
 ;; whitespace-mode
 ;; free of trailing whitespace and to use 100-column width, standard indentation
@@ -151,9 +151,12 @@
   :init (global-company-mode)
   :bind ("M-/" . company-complete-common) ; Use Meta+/ to perform completion
   )
+
 ;; Configure consult mode.  Note this doesn't work with python-lsp-server as of writing,
 ;; and that pyright lsp server doesn't seem to work with eglot.
 (require 'consult-eglot)
+
+
 ;; Enable which-func-mode
 (which-function-mode 1)
 ;; Enable which-func-mode
@@ -339,7 +342,6 @@
     (goto-char (point-min)))
   )
 
-
 (defun cs ()
   "Run the shell command 'cs' with a string argument."
   (interactive)
@@ -384,6 +386,7 @@
             nil))
       t)
     ))
+
 ;; TODO: use filelock.el to create the lock files when applying orig-fun.
 (defun check-file-lock-and-confirm (orig-fun &rest args)
   "Check if the file is locked and ask for confirmation if user wants to open it."
@@ -398,7 +401,7 @@
 (advice-add 'find-file :around #'check-file-lock-and-confirm)
 
 ;; C-x C-f for regular find-file
-;; C-x f for find-file-in-repository
+;; C-x f for find-file-in-repository (which is slower)
 (require 'find-file-in-repository)
 (global-set-key (kbd "C-x f") 'find-file-in-repository)
 
@@ -410,6 +413,9 @@
 
 ;; To be able to use `gh-comments-show`.
 (require 'gh-comments)
+
+;; To be able to use `ci-failures-show`.
+(require 'ci-failures)
 
 ;; Define a handler function for etags
 (defun etags-jump-fn-for-smart-jump ()
