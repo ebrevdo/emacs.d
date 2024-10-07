@@ -1,6 +1,6 @@
 ;;; gh-comments.el --- Display GitHub PR comments in Emacs -*- lexical-binding: t; -*-
 
-;; Version: 1.6
+;; Version: 1.10
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: tools, github
 ;; URL: https://github.com/ebrevdo/gh-comments
@@ -13,6 +13,11 @@
 ;; GitHub REST API via the `gh` CLI, grouping comments by conversation,
 ;; filtering out resolved conversations, and formatting entries to match
 ;; `compilation-mode` requirements.
+
+;; New Features:
+;; - Press "r" when hovering over a comment to reply to the thread.
+;; - Press "g" to refresh all comments.
+;; - The reply is sent via the `gh` command and the comments are refreshed.
 
 ;;; Code:
 
@@ -130,8 +135,7 @@
         (threads (make-hash-table :test 'equal))
         ;; sort comments by creation date
         (comments (seq-sort-by (lambda (comment) (alist-get 'created_at comment))
-                               'string< comments))
-        )
+                               'string< comments)))
     ;; First, map comment IDs to comments
     (dolist (comment comments)
       (puthash (alist-get 'id comment) comment comment-id-map))
@@ -173,32 +177,31 @@
 
 (defun gh-comments-format-thread (thread)
   "Format a single thread for display."
-  ;; THREAD is a list of comments in reverse order (newest first)
   (let* ((sorted-comments (reverse thread))
          (first-comment (car sorted-comments))
          (relative-path (or (alist-get 'path first-comment) "[unknown file]"))
          (absolute-path (expand-file-name relative-path (gh-comments-get-root-dir)))
          (raw-line-number (or (alist-get 'line first-comment)
                               (alist-get 'original_line first-comment)))
-         ;; Handle :null values by converting them to nil
          (line-number (if (eq raw-line-number :null) nil raw-line-number))
          (line-number-str (if (numberp line-number)
                               (number-to-string line-number)
                             ""))
          (diff-hunk (or (alist-get 'diff_hunk first-comment) "[No diff hunk available]"))
-         ;; No need to colorize diff hunk here
          (formatted-diff diff-hunk)
          (formatted-comments
           (mapconcat
            (lambda (comment)
              (let-alist comment
-               (format "%s %s\n%s\n"
-                       (propertize (or (alist-get 'login .user) "[unknown user]")
-                                   'font-lock-face 'gh-comments-metadata-face)
-                       (propertize (or .created_at "[unknown date]")
-                                   'font-lock-face 'gh-comments-metadata-face)
-                       (propertize (or .body "[empty comment]")
-                                   'font-lock-face 'gh-comments-body-face))))
+               (let ((comment-text (format "%s %s\n%s\n"
+                                           (propertize (or (alist-get 'login .user) "[unknown user]")
+                                                       'font-lock-face 'gh-comments-metadata-face)
+                                           (propertize (or .created_at "[unknown date]")
+                                                       'font-lock-face 'gh-comments-metadata-face)
+                                           (propertize (or .body "[empty comment]")
+                                                       'font-lock-face 'gh-comments-body-face))))
+                 ;; Add the comment ID as a text property
+                 (propertize comment-text 'gh-comments-comment-id (alist-get 'id comment)))))
            sorted-comments
            "\n")))
     ;; Format according to compilation-mode requirements
@@ -219,6 +222,14 @@
       (let ((inhibit-read-only t))
         (erase-buffer)
         (compilation-mode)
+        ;; Store necessary variables as buffer-local
+        (setq-local gh-comments-owner owner)
+        (setq-local gh-comments-repo repo)
+        (setq-local gh-comments-pr-number pr-number)
+        (setq-local gh-comments-default-directory default-directory)
+        ;; Add local key bindings
+        (local-set-key (kbd "r") 'gh-comments-reply)
+        (local-set-key (kbd "g") 'gh-comments-refresh)
         ;; Add custom font-lock keywords for diff lines
         (font-lock-add-keywords nil
           '(("^\\(+.*\\)$" 1 'gh-comments-diff-added)
@@ -250,23 +261,66 @@
 
 If PR-NUMBER is not provided, attempt to determine it automatically."
   (interactive)
-  (let* ((repo-info (gh-comments-get-repo-info))
-         (owner (car repo-info))
-         (repo (cdr repo-info))
-         (pr-number (or pr-number (gh-comments-get-current-pr))))
-    (unless pr-number
-      (setq pr-number (read-string "Enter PR number: ")))
-    (if (string-match-p "^[0-9]+$" pr-number)
-        (condition-case err
-            (let* ((comments (gh-comments-get-comments owner repo (string-to-number pr-number)))
-                   (threads (gh-comments-build-threads comments))
-                   (filtered-threads (gh-comments-filter-resolved-threads threads)))
-              (if filtered-threads
-                  (gh-comments-display-comments owner repo pr-number filtered-threads)
-                (message "No unresolved comments found for PR #%s." pr-number)))
-          (error
-           (gh-comments-display-error (error-message-string err))))
-      (message "Invalid PR number: %s" pr-number))))
+  ;; Ensure default-directory is set
+  (let ((default-directory (or default-directory (gh-comments-get-root-dir))))
+    (let* ((repo-info (gh-comments-get-repo-info))
+           (owner (car repo-info))
+           (repo (cdr repo-info))
+           (pr-number (or pr-number (gh-comments-get-current-pr))))
+      (unless pr-number
+        (setq pr-number (read-string "Enter PR number: ")))
+      (if (string-match-p "^[0-9]+$" pr-number)
+          (condition-case err
+              (let* ((comments (gh-comments-get-comments owner repo (string-to-number pr-number)))
+                     (threads (gh-comments-build-threads comments))
+                     (filtered-threads (gh-comments-filter-resolved-threads threads)))
+                (if filtered-threads
+                    (gh-comments-display-comments owner repo pr-number filtered-threads)
+                  (message "No unresolved comments found for PR #%s." pr-number)))
+            (error
+             (gh-comments-display-error (error-message-string err))))
+        (message "Invalid PR number: %s" pr-number)))))
+
+;; Functions for replying and refreshing comments
+
+(defun gh-comments-reply ()
+  "Reply to the GitHub comment at point."
+  (interactive)
+  ;; Get the comment ID at point
+  (let ((comment-id (get-text-property (point) 'gh-comments-comment-id)))
+    (if comment-id
+        (let ((reply (read-from-minibuffer "Reply: ")))
+          ;; Send the reply
+          (gh-comments-send-reply comment-id reply))
+      (message "No comment at point to reply to."))))
+
+(defun gh-comments-send-reply (comment-id reply)
+  "Send REPLY as a reply to the comment with COMMENT-ID."
+  (let* ((original-buffer (current-buffer))
+         (default-directory gh-comments-default-directory)
+         (owner gh-comments-owner)
+         (repo gh-comments-repo)
+         (pr-number gh-comments-pr-number)
+         (endpoint (format "repos/%s/%s/pulls/%s/comments" owner repo pr-number))
+         (command (list gh-comments-gh-executable "api" endpoint
+                        "--method" "POST"
+                        "--field" (concat "body=" reply)
+                        "--field" (format "in_reply_to=%s" comment-id))))
+    (with-temp-buffer
+      (let ((exit-code (apply 'call-process (car command) nil (list t t) nil (cdr command)))
+            (output (buffer-string)))
+        (if (eq exit-code 0)
+            (message "Reply sent successfully.")
+          (message "Failed to send reply: %s" output))))))
+
+(defun gh-comments-refresh ()
+  "Refresh the GitHub comments."
+  (interactive)
+  (let ((default-directory gh-comments-default-directory)
+        (owner gh-comments-owner)
+        (repo gh-comments-repo)
+        (pr-number gh-comments-pr-number))
+    (gh-comments-show pr-number)))
 
 (provide 'gh-comments)
 
