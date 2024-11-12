@@ -28,9 +28,11 @@
      "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(auctex cdlatex diminish dired-git-info editorconfig eglot flymake ggtags go-mode jsonrpc
-            lsp-pyright lv magit markdown-mode orderless org org-journal paredit projectile
-            rust-mode smart-jump solarized-theme spinner vertico)))
+   '(auctex cdlatex diminish dired-git-info editorconfig eglot flymake ggtags go-mode jsonrpc lv
+     magit markdown-mode orderless org org-journal paredit projectile rust-mode
+     solarized-theme spinner vertico autothemer company compat consult consult-flycheck dash
+     eldoc emacsql flycheck git-commit ivy magit-section reformatter request transient
+     websocket wgrep with-editor)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -467,6 +469,10 @@
                              (lambda (mode) (concat "*pyright: " buffer-name "*")))
           )
       (message "No file associated with buffer."))))
+
+
+(require 'rg)
+(rg-enable-default-bindings)
 
 
 (provide 'init)

@@ -103,3 +103,6 @@
 [submodule "lisp/emacs-bazel-mode"]
 	path = lisp/emacs-bazel-mode
 	url = https://github.com/bazelbuild/emacs-bazel-mode
+[submodule "lisp/rg.el"]
+	path = lisp/rg.el
+	url = https://github.com/dajva/rg.el
