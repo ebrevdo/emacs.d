@@ -34,12 +34,6 @@
 [submodule "lisp/emacs-web-server"]
 	path = lisp/emacs-web-server
 	url = https://github.com/skeeto/emacs-web-server
-[submodule "lisp/emacs-zmq"]
-	path = lisp/emacs-zmq
-	url = https://github.com/ebrevdo/emacs-zmq
-[submodule "lisp/jupyter"]
-	path = lisp/jupyter
-	url = https://github.com/emacs-jupyter/jupyter
 [submodule "lisp/code-review"]
 	path = lisp/code-review
 	url = https://github.com/wandersoncferreira/code-review

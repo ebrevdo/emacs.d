@@ -1,10 +1,15 @@
 (with-eval-after-load 'package
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
   (add-to-list 'package-archives '("nongnu-devel" . "https://elpa.nongnu.org/nongnu-devel/"))
+  (package-initialize)
   )
 
 ;; Disable menu bar
 (menu-bar-mode -1)
+
+;; Enable xterm-mouse-mode
+(xterm-mouse-mode 1)
 
 ;; This allows us to then call `use-package-report` to profile startup.
 (setq use-package-compute-statistics t)
@@ -28,11 +33,11 @@
      "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(auctex cdlatex diminish dired-git-info editorconfig eglot flymake ggtags go-mode jsonrpc lv
-     magit markdown-mode orderless org org-journal paredit projectile rust-mode
-     solarized-theme spinner vertico autothemer company compat consult consult-flycheck dash
-     eldoc emacsql flycheck git-commit ivy magit-section reformatter request transient
-     websocket wgrep with-editor)))
+   '(auctex autothemer cdlatex company compat consult consult-flycheck dash diminish dired-git-info
+            editorconfig eglot eldoc emacsql flycheck flymake ggtags git-commit go-mode ivy jsonrpc
+            jupyter lv magit magit-section markdown-mode orderless org org-journal paredit
+            projectile reformatter request rust-mode solarized-theme spinner transient vertico
+            websocket wgrep with-editor)))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -134,15 +139,44 @@
 (setq blacken-use-pyproject-toml t)
 ;; Set blacken to only run in a repo with a pyproject.toml
 (setq blacken-only-if-project-is-blackened t)
+
 ;; Also ruff fix on save
 (require 'ruff-fix)
-(defun eglot-format-buffer-on-save ()
-  "Run `eglot-format-buffer` as a before-save hook."
-  (add-hook 'before-save-hook #'ruff-fix-before-save -10 t))
-(add-hook 'eglot-managed-mode-hook #'eglot-format-buffer-on-save)
-;; Also isort on save
 (require 'python-isort)
-(add-hook 'python-mode-hook 'python-isort-on-save-mode)
+
+(defun absolute-default-directory ()
+  "Return the absolute path of the default directory.  Replace ~ with homedir."
+  (expand-file-name default-directory))
+
+;; set python-isort-arguments; extract line-length from
+(setq python-isort-arguments
+      (append
+       (list (concat "--line-length=" (number-to-string blacken-line-length))
+             (if (locate-dominating-file default-directory ".isort.cfg")
+                 (concat
+                  "--settings-path="
+                  (expand-file-name (locate-dominating-file default-directory ".isort.cfg"))
+                  ".isort.cfg")
+               (if (locate-dominating-file default-directory "openai/.isort.cfg")
+                   (concat
+                    "--settings-path="
+                    (expand-file-name (locate-dominating-file default-directory "openai/.isort.cfg"))
+                    "openai/.isort.cfg")
+                 "")))
+       ;; Add the rest of the arguments
+       '("--profile=black" "--stdout" "-")))
+
+(defun python-format-buffer-on-save ()
+  "Run `blacken-buffer` and `ruff-fix-before-save` as `before-save-hook`."
+  ;; First run blacken-buffer
+  (add-hook 'before-save-hook #'blacken-buffer -10 t)
+  ;; Then run isort-buffer
+  (add-hook 'before-save-hook #'python-isort-buffer -9 t)
+  ;; Then run ruff-fix-before-save
+  (add-hook 'before-save-hook #'ruff-fix-before-save -8 t))
+(add-hook 'python-mode-hook #'python-format-buffer-on-save)
+
+
 ;; Use python-pytest
 (require 'python-pytest)
 (setq python-pytest-executable "python -m pytest -vv")
@@ -291,7 +325,7 @@
 ;;    pip install jupyterlab
 ;; Also need some packages for compilation:
 ;;    brew install autoconf automake libtool pkg-config zeromq
-;;(require 'jupyter)
+(require 'jupyter)
 
 
 ;; Github etc code review
@@ -473,6 +507,28 @@
 
 (require 'rg)
 (rg-enable-default-bindings)
+
+
+;; Make 'rg' by default use the current token at the cursor as the default value.
+(defun rg-with-default-symbol (orig-fun &rest args)
+  "Advice to pre-fill the rg prompt with the symbol at point."
+  (let ((string (thing-at-point 'symbol)))
+    (minibuffer-with-setup-hook
+        (lambda () (when string (insert (regexp-quote string))))
+      (apply orig-fun args))))
+
+(advice-add 'rg :around #'rg-with-default-symbol)
+
+;; Add a "rg repo" command that runs "rg" prompt, with the default directory as the repo directory
+(defun rg-repo ()
+  "Run the interactive 'rg' command with the default directory set to the repository root."
+  (interactive)
+  (let ((repo-root (magit-toplevel)))
+    (if repo-root
+        (let ((default-directory repo-root))
+          (call-interactively 'rg))
+      (message "Not inside a version-controlled repository."))))
+
 
 
 (provide 'init)
