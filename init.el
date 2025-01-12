@@ -1,15 +1,15 @@
+(require 'package)
 (with-eval-after-load 'package
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
   (add-to-list 'package-archives '("nongnu-devel" . "https://elpa.nongnu.org/nongnu-devel/"))
-  (package-initialize)
-  )
+)
 
 ;; Disable menu bar
 (menu-bar-mode -1)
 
 ;; Enable xterm-mouse-mode
-(xterm-mouse-mode 1)
+;; (xterm-mouse-mode 1)
 
 ;; This allows us to then call `use-package-report` to profile startup.
 (setq use-package-compute-statistics t)
@@ -32,19 +32,11 @@
    '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f"
      "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
- '(package-selected-packages
-   '(auctex autothemer cdlatex company compat consult consult-flycheck dash diminish dired-git-info
-            editorconfig eglot eldoc emacsql flycheck flymake ggtags git-commit go-mode ivy jsonrpc
-            jupyter lv magit magit-section markdown-mode orderless org org-journal paredit
-            projectile reformatter request rust-mode solarized-theme spinner transient vertico
-            websocket wgrep with-editor)))
+ '(package-selected-packages nil))
 
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+;; Ensure all selected packages are actually installed.  It's not sufficient to just refresh contents!
+(unless (cl-every #'package-installed-p package-selected-packages)
+  (package-install-selected-packages))
 
 ;; Stop asking if it's OK to kill processes on exit.
 (setq confirm-kill-processes nil)
@@ -79,8 +71,45 @@
 (global-hl-fill-column-mode)
 
 ;; Share clipboard with system using super+{c,v,x}
-(require 'simpleclip)
-(simpleclip-mode 1)
+;; Enable simpleclip
+(use-package simpleclip
+  :ensure t
+  :custom
+  ;; Don't set any keybindings for simpleclip
+  (simpleclip-cut-keystrokes '())
+  (simpleclip-copy-keystrokes '())
+  (simpleclip-paste-keystrokes '())
+  :config
+  ;; Initialize simpleclip
+  (simpleclip-mode 1)
+
+  ;; Advice for `kill-new` to copy to system clipboard
+  (defun my-kill-new-to-clipboard (string &optional replace)
+    "Copy STRING to the system clipboard using simpleclip."
+    (when (and string (stringp string)) ;; Ensure string is valid
+      (simpleclip-set-contents string))) ;; Copy to system clipboard
+  (advice-add 'kill-new :after #'my-kill-new-to-clipboard)
+
+  (defun my-kill-region-to-clipboard (beg end &optional region)
+  "Copy cut text to the system clipboard using simpleclip, handling out-of-bounds errors."
+  (when (and (<= beg end) ;; Ensure beg is not greater than end
+             (<= beg (point-max)) ;; Ensure beg is within the buffer
+             (<= end (point-max))) ;; Ensure end is within the buffer
+    (let ((text (buffer-substring-no-properties beg end)))
+      (when (and text (stringp text)) ;; Ensure text is valid
+        (simpleclip-set-contents text)))))
+  (advice-add 'kill-region :after #'my-kill-region-to-clipboard)
+
+  ;; Advice for `yank` to pull text from the system clipboard
+  (defun my-yank-from-clipboard (&rest _args)
+    "Ensure yank also integrates with the system clipboard via simpleclip."
+    (let ((clipboard-text (simpleclip-get-contents)))
+      (when (and clipboard-text (stringp clipboard-text)) ;; Ensure text is valid
+        ;; make sure that clipboard-text does not match the last kill
+        (unless (string= clipboard-text (car kill-ring))
+          (kill-new clipboard-text))))) ;; Sync clipboard content to kill ring
+  (advice-add 'yank :before #'my-yank-from-clipboard)
+)
 
 ;; whitespace-mode
 ;; free of trailing whitespace and to use 100-column width, standard indentation
@@ -529,6 +558,21 @@
           (call-interactively 'rg))
       (message "Not inside a version-controlled repository."))))
 
+(require 'gptel)
+(setq gptel-model "ChatGPT:o1-mini")
+(setq gptel-stream t)
+
+;; Set up markdown mode to use pandoc, properly toggle math mode, and use visual-line-mode
+(use-package markdown-mode
+  :ensure
+  :init
+  ;; support latex for pandoc
+  (setq markdown-command "pandoc -f markdown -t html5 --mathjax --highlight-style pygments")
+  (setq markdown-header-scaling t)
+  (setq markdown-enable-math t)
+  (setq markdown-fontify-code-blocks-natively t)
+  (setq markdown-enable-wiki-links t)
+)
 
 
 (provide 'init)
