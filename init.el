@@ -92,12 +92,11 @@
 
   (defun my-kill-region-to-clipboard (beg end &optional region)
   "Copy cut text to the system clipboard using simpleclip, handling out-of-bounds errors."
-  (when (and (<= beg end) ;; Ensure beg is not greater than end
-             (<= beg (point-max)) ;; Ensure beg is within the buffer
-             (<= end (point-max))) ;; Ensure end is within the buffer
-    (let ((text (buffer-substring-no-properties beg end)))
-      (when (and text (stringp text)) ;; Ensure text is valid
-        (simpleclip-set-contents text)))))
+  (let ((beg_or_point_min (max beg (point-min)))
+        (end_or_point_max (min end (point-max)))
+        (text (buffer-substring-no-properties beg_or_point_min end_or_point_max)))
+    (when (and text (stringp text)) ;; Ensure text is valid
+      (simpleclip-set-contents text))))
   (advice-add 'kill-region :after #'my-kill-region-to-clipboard)
 
   ;; Advice for `yank` to pull text from the system clipboard
