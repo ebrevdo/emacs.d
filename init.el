@@ -12,7 +12,7 @@
 ;; (xterm-mouse-mode 1)
 
 ;; This allows us to then call `use-package-report` to profile startup.
-(setq use-package-compute-statistics t)
+
 
 ;; Move eln-cache to $HOME/.emacs-eln-cache
 (setq native-comp-eln-load-path (list (expand-file-name "~/.eln-cache-emacs/")))
@@ -90,13 +90,11 @@
       (simpleclip-set-contents string))) ;; Copy to system clipboard
   (advice-add 'kill-new :after #'my-kill-new-to-clipboard)
 
-  (defun my-kill-region-to-clipboard (beg end &optional region)
-  "Copy cut text to the system clipboard using simpleclip, handling out-of-bounds errors."
-  (let ((beg_or_point_min (max beg (point-min)))
-        (end_or_point_max (min end (point-max)))
-        (text (buffer-substring-no-properties beg_or_point_min end_or_point_max)))
-    (when (and text (stringp text)) ;; Ensure text is valid
-      (simpleclip-set-contents text))))
+  (defun my-kill-region-to-clipboard (beg end)
+    "Copy the most recent kill from the kill ring to the clipboard."
+    (let ((killed-text (current-kill 0 t)))  ;; Retrieve the latest kill without moving the mark
+      (when (and killed-text (stringp killed-text))
+        (simpleclip-set-contents killed-text))))
   (advice-add 'kill-region :after #'my-kill-region-to-clipboard)
 
   ;; Advice for `yank` to pull text from the system clipboard
@@ -107,8 +105,7 @@
         ;; make sure that clipboard-text does not match the last kill
         (unless (string= clipboard-text (car kill-ring))
           (kill-new clipboard-text))))) ;; Sync clipboard content to kill ring
-  (advice-add 'yank :before #'my-yank-from-clipboard)
-)
+  (advice-add 'yank :before #'my-yank-from-clipboard))
 
 ;; whitespace-mode
 ;; free of trailing whitespace and to use 100-column width, standard indentation
