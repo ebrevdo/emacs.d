@@ -1,6 +1,3 @@
-[submodule "copilot.el"]
-	path = copilot.el
-	url = https://github.com/copilot-emacs/copilot.el
 [submodule "lisp/f.el"]
 	path = lisp/f.el
 	url = https://github.com/rejeep/f.el

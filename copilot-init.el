@@ -3,7 +3,6 @@
 
 (require 'package)
 (require 'cl)
-(add-to-list 'load-path "~/.emacs.d/copilot.el/")
 
 (setq ;; debug-on-error t
       no-byte-compile t

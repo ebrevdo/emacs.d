@@ -32,7 +32,11 @@
    '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f"
      "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
- '(package-selected-packages nil))
+ '(package-selected-packages
+   '(anaphora auctex autothemer cdlatex company consult-flycheck copilot deferred diminish
+              dired-git-info editorconfig eglot emacsql ggtags go-mode gptel ivy jupyter lv magit
+              obsidian orderless org-journal paredit polymode projectile reformatter request
+              rust-mode simpleclip solarized-theme spinner vertico wgrep)))
 
 ;; Ensure all selected packages are actually installed.  It's not sufficient to just refresh contents!
 (unless (cl-every #'package-installed-p package-selected-packages)
@@ -90,9 +94,9 @@
       (simpleclip-set-contents string))) ;; Copy to system clipboard
   (advice-add 'kill-new :after #'my-kill-new-to-clipboard)
 
-  (defun my-kill-region-to-clipboard (beg end)
-    "Copy the most recent kill from the kill ring to the clipboard."
-    (let ((killed-text (current-kill 0 t)))  ;; Retrieve the latest kill without moving the mark
+  (defun my-kill-region-to-clipboard (beg end &optional region)
+    "Copy the most recent kill to the clipboard."
+    (let ((killed-text (current-kill 0 t)))
       (when (and killed-text (stringp killed-text))
         (simpleclip-set-contents killed-text))))
   (advice-add 'kill-region :after #'my-kill-region-to-clipboard)
@@ -154,6 +158,26 @@
 	  (lambda ()
 	    (add-hook 'flymake-diagnostic-functions #'python-flymake t t))
 	  nil t)
+
+;; Some code attempting to get pyright working better in MacOS.
+;;
+;;(setq eglot-server-programs '((python-mode . ("basedpyright-langserver" "--stdio"))))
+;; modify progmodes / project mode, to set project root to the directory containing dominating pyproject.toml
+;; (defun my-transient-project (dir)
+;;   "Python projects, get directory with a pyproject.toml or setup.py.  Otherwise return nil."
+;;   (let ((pyproject-toml (locate-dominating-file dir "pyproject.toml"))
+;;         (setup-py (locate-dominating-file dir "setup.py")))
+;;     (if pyproject-toml
+;;         (cons 'transient (file-name-directory pyproject-toml))
+;;       (if setup-py
+;;           (cons 'transient (file-name-directory setup-py))
+;;         nil)))
+;;   )
+;; ;; Load project.el
+;; (require 'project)
+;; ;; Prepend our function so it’s used before the built‐in ones.
+;; (setq project-find-functions (cons #'my-transient-project project-find-functions))
+
 
 ;; Autoformat on save
 ;; Load blacken and set all the settings in one go
@@ -374,9 +398,14 @@
 (global-set-key (kbd "C-c C-c") 'comment-dwim)
 
 ; After loading magit, configure it
-(require 'magit)
-;; Set the default git executable to "git"
-(setq magit-diff-expansion-threshold 3)
+(use-package  magit
+  :ensure t
+  :init
+  (setq magit-diff-expansion-threshold 3)
+  (setq magit-diff-refine-hunk nil)
+  ;; M-m opens magit-file-dispatch
+  (global-set-key (kbd "M-m") 'magit-file-dispatch)
+  )
 
 ;; Make paths "clickable" in shell mode
 (require 'compile)
@@ -555,10 +584,10 @@
       (message "Not inside a version-controlled repository."))))
 
 (require 'gptel)
-(setq gptel-model "ChatGPT:o1-mini")
+(setq gptel-model 'o1-mini)
 (setq gptel-stream t)
 
-;; Set up markdown mode to use pandoc, properly toggle math mode, and use visual-line-mode
+; Set up markdown mode to use pandoc, properly toggle math mode, and use visual-line-mode
 (use-package markdown-mode
   :ensure
   :init
@@ -570,6 +599,37 @@
   (setq markdown-enable-wiki-links t)
 )
 
+(use-package alert
+  :commands (alert)
+  :init
+  (setq alert-default-style 'notifier))
+
+
+;; Enable which-key-mode, side window right and C-h opens it up
+(use-package which-key
+  :ensure t
+  :init
+  (which-key-mode)
+  (which-key-setup-side-window-right-bottom)
+  (setq which-key-show-early-on-C-h t)
+  (setq which-key-idle-delay 0.5)
+  (setq which-key-idle-secondary-delay 0.1)
+
+)
+;; load local-init.el if it's available
+(let ((local-init-file "~/.emacs.d/local-init.el"))
+  (when (file-exists-p local-init-file)
+    (load-file local-init-file)))
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+;; add ~/.authinfo.gpg to auth-sources
+(setq auth-sources '("~/.authinfo.gpg"))
 
 (provide 'init)
 ;;; init.el ends here

@@ -26,6 +26,9 @@ request/
 history
 transient/history.el
 
+# Local
+local-init.el
+
 # sqlite and logs
 *.sqlite
 *.log
