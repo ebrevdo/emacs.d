@@ -143,6 +143,15 @@
           #'paredit-mode)
 
 ;; Load pyvenv and eglot, ruff, black, etc.
+(use-package eglot
+  :config
+  ;; This stops eglot from asking pyright to watch every file in repo.
+  (defun nuance--eglot-register-capability-advice (orig server method id &rest args)
+    "Advice for `eglot-register-capability' to skip all watchers."
+    (list t "OK"))
+
+  (advice-add 'eglot-register-capability :around #'nuance--eglot-register-capability-advice))
+
 ;; To install associated python LSP server:
 ;;   pip install --upgrade 'python-lsp-server[all]' python-lsp-black python-lsp-ruff
 ;; Enable LSP support by default in programming buffers
@@ -158,6 +167,7 @@
 	  (lambda ()
 	    (add-hook 'flymake-diagnostic-functions #'python-flymake t t))
 	  nil t)
+
 
 ;; Some code attempting to get pyright working better in MacOS.
 ;;
