@@ -29,14 +29,15 @@
  ;; If there is more than one, they won't work right.
  '(aibo:model "gpt-4o")
  '(custom-safe-themes
-   '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f"
-     "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
+   '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f" "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
    '(anaphora auctex autothemer cdlatex company consult-flycheck copilot deferred diminish
               dired-git-info editorconfig eglot emacsql ggtags go-mode gptel ivy jupyter lv magit
               obsidian orderless org-journal paredit polymode projectile reformatter request
-              rust-mode simpleclip solarized-theme spinner vertico wgrep)))
+              rust-mode simpleclip solarized-theme spinner vertico wgrep
+   markdown-mode wgrep websocket vertico simpleclip request reformatter projectile paredit orderless magit ivy gptel editorconfig diminish consult company autothemer)))
+
 
 ;; Ensure all selected packages are actually installed.  It's not sufficient to just refresh contents!
 (unless (cl-every #'package-installed-p package-selected-packages)
@@ -643,3 +644,9 @@
 
 (provide 'init)
 ;;; init.el ends here
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
