@@ -1,17 +1,25 @@
+;;; init.el -- ebrevdo@ init.el -*- lexical-binding: t -*-5.
+;;; Commentary:
+;;; blah blah blah.
 (require 'package)
+
+;; Put this at the very top of your init *temporarily* to debug startup.
+;; (setq debug-on-error   t                ; break into the debugger on errors
+;;       debug-on-warning t                ; ...and on warnings
+;;       warning-minimum-level :debug)
+
 (with-eval-after-load 'package
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
   (add-to-list 'package-archives '("nongnu-devel" . "https://elpa.nongnu.org/nongnu-devel/"))
-)
+  )
+
 
 ;; Disable menu bar
 (menu-bar-mode -1)
 
 ;; Enable xterm-mouse-mode
 ;; (xterm-mouse-mode 1)
-
-;; This allows us to then call `use-package-report` to profile startup.
 
 
 ;; Move eln-cache to $HOME/.emacs-eln-cache
@@ -29,17 +37,20 @@
  ;; If there is more than one, they won't work right.
  '(aibo:model "gpt-4o")
  '(custom-safe-themes
-   '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f" "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
+   '("061cf8206a054f0fd0ecd747e226608302953edf9f24663b10e6056ab783419f"
+     "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(anaphora auctex autothemer cdlatex company consult-flycheck copilot deferred diminish
-              dired-git-info editorconfig eglot emacsql ggtags go-mode gptel ivy jupyter lv magit
-              obsidian orderless org-journal paredit polymode projectile reformatter request
-              rust-mode simpleclip solarized-theme spinner vertico wgrep
-   markdown-mode wgrep websocket vertico simpleclip request reformatter projectile paredit orderless magit ivy gptel editorconfig diminish consult company autothemer)))
+   '(anaphora auctex autothemer autothemer bazel cdlatex company company consult
+              consult-flycheck copilot deferred diminish diminish dired-git-info editorconfig
+              editorconfig eglot emacsql ggtags go-mode gptel gptel ivy ivy jupyter lsp-mode
+              lsp-svlangserver lv magit magit markdown-mode obsidian orderless orderless org-journal
+              paredit paredit polymode projectile projectile reformatter reformatter request request
+              rust-mode simpleclip simpleclip solarized-theme spinner verilog-ext verilog-mode
+              verilog-ts-mode vertico vertico websocket wgrep wgrep)))
 
 
-;; Ensure all selected packages are actually installed.  It's not sufficient to just refresh contents!
+;; Ensure all selected packages are actually installed.  It's not sufficient to refresh contents!
 (unless (cl-every #'package-installed-p package-selected-packages)
   (package-install-selected-packages))
 
@@ -122,6 +133,7 @@
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;; Load copilot-emacsd
+
 (load-file "~/.emacs.d/copilot-init.el")
 
 ;; Load openai chatbot
@@ -156,7 +168,18 @@
 ;; To install associated python LSP server:
 ;;   pip install --upgrade 'python-lsp-server[all]' python-lsp-black python-lsp-ruff
 ;; Enable LSP support by default in programming buffers
-(add-hook 'prog-mode-hook #'eglot-ensure)
+(add-hook 'prog-mode-hook
+          ;; Only enable eglot if the server is available.
+          (lambda ()
+            (when (cl-some
+                   (lambda (entry)
+                     (let ((modes (car entry)))
+                       (if (listp modes)
+                           (memq major-mode modes)
+                         (eq major-mode modes))))
+                   eglot-server-programs)
+              (eglot-ensure))))
+
 ;; Create a memorable alias for `eglot-ensure'.
 (defalias 'start-lsp-server #'eglot)
 ;; Enabled inline static analysis
@@ -168,26 +191,6 @@
 	  (lambda ()
 	    (add-hook 'flymake-diagnostic-functions #'python-flymake t t))
 	  nil t)
-
-
-;; Some code attempting to get pyright working better in MacOS.
-;;
-;;(setq eglot-server-programs '((python-mode . ("basedpyright-langserver" "--stdio"))))
-;; modify progmodes / project mode, to set project root to the directory containing dominating pyproject.toml
-;; (defun my-transient-project (dir)
-;;   "Python projects, get directory with a pyproject.toml or setup.py.  Otherwise return nil."
-;;   (let ((pyproject-toml (locate-dominating-file dir "pyproject.toml"))
-;;         (setup-py (locate-dominating-file dir "setup.py")))
-;;     (if pyproject-toml
-;;         (cons 'transient (file-name-directory pyproject-toml))
-;;       (if setup-py
-;;           (cons 'transient (file-name-directory setup-py))
-;;         nil)))
-;;   )
-;; ;; Load project.el
-;; (require 'project)
-;; ;; Prepend our function so it’s used before the built‐in ones.
-;; (setq project-find-functions (cons #'my-transient-project project-find-functions))
 
 
 ;; Autoformat on save
@@ -624,9 +627,58 @@
   (which-key-setup-side-window-right-bottom)
   (setq which-key-show-early-on-C-h t)
   (setq which-key-idle-delay 0.5)
-  (setq which-key-idle-secondary-delay 0.1)
+  (setq which-key-idle-secondary-delay 0.1))
 
-)
+
+;; Additions for verilog
+;;; Note: svlangserver install requires running: npm install -g @imc-trading/svlangserver
+;;; --- Verilog major mode ----------------------------------------------------
+(use-package verilog-mode               ; built‑in, but leaving :ensure makes MELPA updates easy
+  :ensure t
+  :hook ((verilog-mode . lsp-deferred)      ; start the LS
+         (verilog-mode . my/verilog-setup)) ; add our local save‑hook
+  :custom
+  ;; --- compile with Icarus --------------------------------------------------
+  (verilog-tool      'iverilog)                        ; C‑c C‑c runs iverilog
+  (verilog-compiler  "iverilog -g2012 -Wall -y ./src") ; edit to taste
+  ;; --- tame AUTOWIRE block size --------------------------------------------
+  (verilog-auto-ignore-concat t)
+  ;; indent style (example: Google‑y 2‑space)
+  (verilog-indent-level               2)
+  (verilog-indent-level-declaration   2)
+  :config
+  (defun my/verilog-setup ()
+    "Hooks run for every `verilog-mode' buffer."
+    ;; Expand AUTOs *and* re‑format before save.
+    (add-hook 'before-save-hook #'verilog-auto         nil t)
+    (add-hook 'before-save-hook #'lsp-format-buffer    nil t)))
+
+;;; --- Verilog helper extras (snippets, Flycheck, etc.) ----------------------
+(use-package verilog-ext
+  :ensure t
+  :after (verilog-mode flycheck)
+  :init
+  (verilog-ext-mode-setup)
+  (verilog-ext-eglot-set-server 've-svlangserver) ;`eglot' config
+  (verilog-ext-lsp-set-server 've-svlangserver)   ; `lsp' config
+  :custom
+  (verilog-ext-auto-format-on-save nil)    ; we already format through LSP
+  )
+
+;;; --- SystemVerilog/Verilog language server --------------------------------
+(use-package lsp-mode
+  :ensure t
+  :commands (lsp lsp-deferred)
+  :custom
+  (lsp-clients-svlangserver-command '("svlangserver" "--"))
+  (lsp-enable-on-type-formatting     t)
+  (lsp-enable-indentation            t))
+
+
+;;; --- Bazel/XLS (optional, for Google XLS/DSLX flows) -----------------------
+(use-package bazel :ensure t :mode ("\\WORKSPACE\\'" "\\.bazel\\'" "\\.bzl\\'"))
+
+
 ;; load local-init.el if it's available
 (let ((local-init-file "~/.emacs.d/local-init.el"))
   (when (file-exists-p local-init-file)
@@ -644,9 +696,3 @@
 
 (provide 'init)
 ;;; init.el ends here
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )

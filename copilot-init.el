@@ -16,7 +16,6 @@
 		  dash
 		  editorconfig
                   company)))
-  (package-initialize)
   (when-let ((to-install (map-filter (lambda (pkg _) (not (package-installed-p pkg))) pkg-list)))
     (package-refresh-contents)
     (mapc (lambda (pkg) (package-install pkg)) pkg-list)))
@@ -167,3 +166,6 @@ annoying, sometimes be useful, that's why this can be handly."
 
 (add-hook 'prog-mode-hook 'copilot-mode)
 (add-hook 'cmake-mode-hook 'copilot-mode)
+
+(provide 'copilot-init)
+;;; copilot-init.el ends here
