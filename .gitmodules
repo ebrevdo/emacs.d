@@ -97,3 +97,9 @@
 [submodule "lisp/rg.el"]
 	path = lisp/rg.el
 	url = https://github.com/dajva/rg.el
+[submodule "lisp/lsp-bridge"]
+	path = lisp/lsp-bridge
+	url = https://github.com/manateelazycat/lsp-bridge
+[submodule "lisp/lspce"]
+	path = lisp/lspce
+	url = https://github.com/zbelial/lspce.git

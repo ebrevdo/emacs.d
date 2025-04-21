@@ -44,7 +44,7 @@
    '(anaphora auctex autothemer autothemer bazel cdlatex company company consult
               consult-flycheck copilot deferred diminish diminish dired-git-info editorconfig
               editorconfig eglot emacsql ggtags go-mode gptel gptel ivy ivy jupyter lsp-mode
-              lsp-svlangserver lv magit magit markdown-mode obsidian orderless orderless org-journal
+              lv magit magit markdown-mode obsidian orderless orderless org-journal
               paredit paredit polymode projectile projectile reformatter reformatter request request
               rust-mode simpleclip simpleclip solarized-theme spinner verilog-ext verilog-mode
               verilog-ts-mode vertico vertico websocket wgrep wgrep)))
@@ -646,6 +646,7 @@
   ;; indent style (example: Google‑y 2‑space)
   (verilog-indent-level               2)
   (verilog-indent-level-declaration   2)
+  (verilog-linter "verilator --timing --lint-only")
   :config
   (defun my/verilog-setup ()
     "Hooks run for every `verilog-mode' buffer."
