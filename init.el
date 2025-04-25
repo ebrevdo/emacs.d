@@ -41,13 +41,13 @@
      "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(anaphora auctex autothemer autothemer bazel cdlatex company company consult
+   '(anaphora auctex auth-source-1password autothemer autothemer bazel cdlatex company company consult
               consult-flycheck copilot deferred diminish diminish dired-git-info editorconfig
               editorconfig eglot emacsql ggtags go-mode gptel gptel ivy ivy jupyter lsp-mode
               lv magit magit markdown-mode obsidian orderless orderless org-journal
               paredit paredit polymode projectile projectile reformatter reformatter request request
-              rust-mode simpleclip simpleclip solarized-theme spinner verilog-ext verilog-mode
-              verilog-ts-mode vertico vertico websocket wgrep wgrep)))
+              rust-mode simpleclip simpleclip solarized-theme spinner typescript-mode verilog-ext
+              verilog-mode verilog-ts-mode vertico vertico websocket wgrep wgrep)))
 
 
 ;; Ensure all selected packages are actually installed.  It's not sufficient to refresh contents!
@@ -597,11 +597,46 @@
           (call-interactively 'rg))
       (message "Not inside a version-controlled repository."))))
 
-(require 'gptel)
-(setq gptel-model 'o1-mini)
-(setq gptel-stream t)
+(use-package gptel
+        :ensure t
+        :init
+        ;; Set model
+        (setq gptel-model 'o4-mini)
+        (setq gptel-stream t)
+        :custom
+        ;; Request API key from auth but use field "api key" instead of "apikey"
+        (gptel-api-key
+         ;; Based off original impl:
+         ;; (defun gptel-api-key-from-auth-source (&optional host user)
+         ;;   "Lookup api key in the auth source.
+         ;; By default, the LLM host for the active backend is used as HOST,
+         ;; and \"apikey\" as USER."
+         ;;   (if-let* ((secret
+         ;;              (plist-get
+         ;;               (car (auth-source-search
+         ;;                     :host (or host (gptel-backend-host gptel-backend))
+         ;;                     :user (or user "apikey")
+         ;;                     :require '(:secret)))
+         ;;               :secret)))
+         ;;       (if (functionp secret)
+         ;;           (encode-coding-string (funcall secret) 'utf-8)
+         ;;         secret)
+         ;;     (user-error "No `gptel-api-key' found in the auth source")))
+         (lambda ()
+           (let ((secret
+                  (plist-get
+                   (car (auth-source-search
+                         :host (gptel-backend-host gptel-backend)
+                         :user "api key"
+                         :require '(:secret)))
+                   :secret)))
+             (if (functionp secret)
+                 (encode-coding-string (funcall secret) 'utf-8)
+               secret)))
+         ))
 
-; Set up markdown mode to use pandoc, properly toggle math mode, and use visual-line-mode
+
+                                        ; Set up markdown mode to use pandoc, properly toggle math mode, and use visual-line-mode
 (use-package markdown-mode
   :ensure
   :init
@@ -611,7 +646,7 @@
   (setq markdown-enable-math t)
   (setq markdown-fontify-code-blocks-natively t)
   (setq markdown-enable-wiki-links t)
-)
+  )
 
 (use-package alert
   :commands (alert)
@@ -694,6 +729,12 @@
 
 ;; add ~/.authinfo.gpg to auth-sources
 (setq auth-sources '("~/.authinfo.gpg"))
+
+(use-package auth-source-1password
+  :ensure t
+  :config
+  (setq auth-source-1password-vault "Private")
+  (auth-source-1password-enable))
 
 (provide 'init)
 ;;; init.el ends here
