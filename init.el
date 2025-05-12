@@ -41,13 +41,20 @@
      "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
-   '(anaphora auctex auth-source-1password autothemer autothemer bazel cdlatex company company consult
+ '(anaphora auctex auth-source-1password autothemer autothemer bazel cdlatex company company consult
               consult-flycheck copilot deferred diminish diminish dired-git-info editorconfig
               editorconfig eglot emacsql ggtags go-mode gptel gptel ivy ivy jupyter lsp-mode
               lv magit magit markdown-mode obsidian orderless orderless org-journal
               paredit paredit polymode projectile projectile reformatter reformatter request request
               rust-mode simpleclip simpleclip solarized-theme spinner typescript-mode verilog-ext
-              verilog-mode verilog-ts-mode vertico vertico websocket wgrep wgrep)))
+              verilog-mode verilog-ts-mode vertico vertico websocket wgrep wgrep
+              anaphora auctex autothemer autothemer bazel cdlatex company company consult consult-flycheck
+              copilot deferred diminish diminish dired-git-info editorconfig editorconfig eglot
+              emacsql ggtags go-mode gptel gptel ivy ivy jupyter lsp-mode lv magit magit
+              markdown-mode obsidian orderless orderless org-journal paredit paredit polymode
+              projectile projectile reformatter reformatter request request rust-mode simpleclip
+              simpleclip solarized-theme spinner toml-mode typescript-mode verilog-ext verilog-mode
+              verilog-ts-mode vertico vertico websocket wgrep wgrep)))
 
 
 ;; Ensure all selected packages are actually installed.  It's not sufficient to refresh contents!
@@ -156,14 +163,26 @@
           #'paredit-mode)
 
 ;; Load pyvenv and eglot, ruff, black, etc.
-(use-package eglot
-  :config
-  ;; This stops eglot from asking pyright to watch every file in repo.
-  (defun nuance--eglot-register-capability-advice (orig server method id &rest args)
-    "Advice for `eglot-register-capability' to skip all watchers."
-    (list t "OK"))
+;; (use-package eglot
+;;   :config
+;;   ;; This stops eglot from asking pyright to watch every file in repo.
+;;   (defun nuance--eglot-register-capability-advice (orig server method id &rest args)
+;;     "Advice for `eglot-register-capability' to skip all watchers."
+;;     (list t "OK"))
+;;   (advice-add 'eglot-register-capability :around #'nuance--eglot-register-capability-advice))
 
-  (advice-add 'eglot-register-capability :around #'nuance--eglot-register-capability-advice))
+(require 'eglot-smart-watchers)
+;;(require 'eglot)
+;; (add-to-list
+;;  'eglot-server-programs
+;;  '((python-mode python-ts-mode)
+;;    . ("env"                       ; POSIX tool that sets env vars then execs
+;;       "NODE_DEBUG=*"
+;;       "PYRIGHT_PYTHON_DEBUG=1"
+;;       "PYRIGHT_PYTHON_VERBOSE=1"
+;;       "pyright-langserver" "--stdio")))
+;; (with-eval-after-load 'eglot
+;;   (eglot-smart-watchers-enable))
 
 ;; To install associated python LSP server:
 ;;   pip install --upgrade 'python-lsp-server[all]' python-lsp-black python-lsp-ruff
