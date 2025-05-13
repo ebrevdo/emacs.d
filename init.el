@@ -625,22 +625,6 @@
         :custom
         ;; Request API key from auth but use field "api key" instead of "apikey"
         (gptel-api-key
-         ;; Based off original impl:
-         ;; (defun gptel-api-key-from-auth-source (&optional host user)
-         ;;   "Lookup api key in the auth source.
-         ;; By default, the LLM host for the active backend is used as HOST,
-         ;; and \"apikey\" as USER."
-         ;;   (if-let* ((secret
-         ;;              (plist-get
-         ;;               (car (auth-source-search
-         ;;                     :host (or host (gptel-backend-host gptel-backend))
-         ;;                     :user (or user "apikey")
-         ;;                     :require '(:secret)))
-         ;;               :secret)))
-         ;;       (if (functionp secret)
-         ;;           (encode-coding-string (funcall secret) 'utf-8)
-         ;;         secret)
-         ;;     (user-error "No `gptel-api-key' found in the auth source")))
          (lambda ()
            (let ((secret
                   (plist-get
@@ -753,7 +737,12 @@
   :ensure t
   :config
   (setq auth-source-1password-vault "Private")
-  (auth-source-1password-enable))
+  (auth-source-1password-enable)
+  ;; now force your GPG file back to the front of auth-sources
+  (let ((gpg-file "~/.authinfo.gpg"))
+    (setq auth-sources
+          (cons gpg-file
+                (delete gpg-file auth-sources)))))
 
 (provide 'init)
 ;;; init.el ends here
