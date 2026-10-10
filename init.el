@@ -41,20 +41,52 @@
      "74e2ed63173b47d6dc9a82a9a8a6a9048d89760df18bc7033c5f91ff4d083e37" default))
  '(custom-theme-directory "~/.emacs.d/lisp/themes")
  '(package-selected-packages
- '(anaphora auctex auth-source-1password autothemer autothemer bazel cdlatex company company consult
-              consult-flycheck copilot deferred diminish diminish dired-git-info editorconfig
-              editorconfig eglot emacsql ggtags go-mode gptel gptel ivy ivy jupyter lsp-mode
-              lv magit magit markdown-mode obsidian orderless orderless org-journal
-              paredit paredit polymode projectile projectile reformatter reformatter request request
-              rust-mode simpleclip simpleclip solarized-theme spinner typescript-mode verilog-ext
-              verilog-mode verilog-ts-mode vertico vertico websocket wgrep wgrep
-              anaphora auctex autothemer autothemer bazel cdlatex company company consult consult-flycheck
-              copilot deferred diminish diminish dired-git-info editorconfig editorconfig eglot
-              emacsql ggtags go-mode gptel gptel ivy ivy jupyter lsp-mode lv magit magit
-              markdown-mode obsidian orderless orderless org-journal paredit paredit polymode
-              projectile projectile reformatter reformatter request request rust-mode simpleclip
-              simpleclip solarized-theme spinner toml-mode typescript-mode verilog-ext verilog-mode
-              verilog-ts-mode vertico vertico websocket wgrep wgrep)))
+   '(anaphora
+     auctex
+     auth-source-1password
+     autothemer
+     bazel
+     cdlatex
+     company
+     consult
+     consult-flycheck
+     copilot
+     deferred
+     diminish
+     dired-git-info
+     editorconfig
+     eglot
+     emacsql
+     ess
+     ggtags
+     go-mode
+     gptel
+     ivy
+     jupyter
+     lsp-mode
+     lv
+     magit
+     markdown-mode
+     obsidian
+     orderless
+     org-journal
+     paredit
+     polymode
+     projectile
+     reformatter
+     request
+     rust-mode
+     simpleclip
+     solarized-theme
+     spinner
+     toml-mode
+     typescript-mode
+     verilog-ext
+     verilog-mode
+     verilog-ts-mode
+     vertico
+     websocket
+     wgrep)))
 
 
 ;; Ensure all selected packages are actually installed.  It's not sufficient to refresh contents!
